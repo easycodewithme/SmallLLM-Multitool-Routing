@@ -1,3 +1,21 @@
-.env
+# Python
 __pycache__/
+*.py[cod]
+*.egg-info/
+.env
 venv/
+*.sqlite3
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Streamlit
+.streamlit/
+
+# OS
+Thumbs.db
