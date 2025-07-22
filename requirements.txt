@@ -1,0 +1,12 @@
+openai
+langchain
+langchain-community
+langchain-openai
+streamlit
+duckduckgo-search>=1.1.0
+PyMuPDF
+tiktoken
+python-dotenv
+yfinance
+newspaper3k
+lxml[html_clean]
