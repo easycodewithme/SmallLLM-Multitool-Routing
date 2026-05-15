@@ -28,19 +28,49 @@ def calculate(text, memory=None):
     except Exception as e:
         return f"Calculator Error: {str(e)}"
 
-def calculate_expression(expression: str) -> str:
+_POWER_PATTERNS = [
+    (r"square(?:d)?\s+of\s+(\d+\.?\d*)", r"(\1**2)"),
+    (r"(\d+\.?\d*)\s+squared", r"(\1**2)"),
+    (r"cube(?:d)?\s+of\s+(\d+\.?\d*)", r"(\1**3)"),
+    (r"(\d+\.?\d*)\s+cubed", r"(\1**3)"),
+    (r"(\d+\.?\d*)\s+to\s+the\s+power\s+of\s+(\d+\.?\d*)", r"(\1**\2)"),
+    (r"(\d+\.?\d*)\s*\^\s*(\d+\.?\d*)", r"(\1**\2)"),
+]
+
+_WORD_TO_OP = [
+    (r"\bplus\b", "+"),
+    (r"\bminus\b", "-"),
+    (r"\btimes\b", "*"),
+    (r"\bmultiplied\s+by\b", "*"),
+    (r"\bdivided\s+by\b", "/"),
+    (r"\bmod(?:ulo)?\b", "%"),
+]
+
+_EXPR_RE = re.compile(r"[0-9\.\+\-\*/%\(\)\s]+")
+
+
+def calculate_expression(text: str) -> str:
     try:
-        # Look for the first valid math expression with numbers and operators
-        # This ignores irrelevant text and safely extracts just the expression
-        match = re.search(r'([0-9\.\+\-\*/\s\(\)]+)', expression)
-        if not match:
+        s = text.lower()
+        for pat, repl in _POWER_PATTERNS:
+            s = re.sub(pat, repl, s)
+        for pat, repl in _WORD_TO_OP:
+            s = re.sub(pat, repl, s)
+
+        expr = None
+        for candidate in _EXPR_RE.findall(s):
+            cleaned = candidate.strip()
+            if cleaned and any(ch.isdigit() for ch in cleaned):
+                expr = cleaned
+                break
+
+        if not expr:
             return "❌ Could not parse a valid math expression."
 
-        expr = match.group(1).strip()
-
-        # Evaluate the expression securely
         result = eval(expr, {"__builtins__": None}, {})
-        return f"{expr} = {round(result, 2)}"
+        if isinstance(result, float) and not result.is_integer():
+            return f"{expr} = {round(result, 4)}"
+        return f"{expr} = {int(result) if isinstance(result, float) else result}"
     except Exception as e:
-        return f"❌ Calculator Error: {str(e)}"
+        return f"❌ Calculator Error: {e}"
 
